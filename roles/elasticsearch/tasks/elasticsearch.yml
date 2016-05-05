@@ -1,0 +1,26 @@
+- name: Install python-pycurl and python-apt
+  sudo: yes
+  apt: pkg={{ item }}  state=present
+  with_items:
+   - python-pycurl
+   - python-apt
+- name: Add Elasticsearch repo key
+  sudo: yes
+  apt_key: url=https://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present 
+- name: Enable Elasticsearch repository
+  sudo: yes
+  apt_repository: repo='deb http://packages.elasticsearch.org/elasticsearch/1.5/debian stable main' state=present 
+- name: Install Elasticsearch from repository
+  sudo: yes
+  apt: pkg={{ item }}  state=present
+  with_items:
+   - elasticsearch
+  notify:
+   - restart elasticsearch
+
+- name: add head plugin
+  sudo : yes
+  command:  /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head
+  notify: restart elasticsearch
+
+  ignore_errors: yes

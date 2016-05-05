@@ -1,0 +1,5 @@
+- name: Elasticsearch configuration
+  sudo: yes
+  template: src=elasticsearch.yml.j2 dest=/etc/elasticsearch/elasticsearch.yml owner=root group=root mode=0644
+  notify:
+   - restart elasticsearch

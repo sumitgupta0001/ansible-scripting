@@ -1,0 +1,10 @@
+---
+- hosts: '{{target}}'
+  user: debian
+  roles:
+    - ufw
+    - postfix
+    - fail2ban
+ # #   - temporary
+   # - elasticsearch
+ 

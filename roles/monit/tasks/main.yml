@@ -1,0 +1,9 @@
+---
+
+- name: Install Monit
+  sudo: yes
+  
+  apt:
+    name: 'monit'
+    state: 'latest'
+    install_recommends: False

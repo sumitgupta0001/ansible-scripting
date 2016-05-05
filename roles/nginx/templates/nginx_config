@@ -1,0 +1,56 @@
+events{
+  worker_connections  {{worker}};
+}
+
+http {
+
+  upstream elasticsearch {
+      server {{nginx_ip}}:9200;
+  }
+
+server
+{
+        listen 10.130.24.23:80;
+        location /
+{
+        root /var/www/;
+        index index.html;
+
+}
+}
+
+
+  server {
+      listen {{nginx_ip}}:8081;
+
+      auth_basic "Restricted";
+      auth_basic_user_file /etc/nginx/passwords;
+
+  location /kibana4/ {
+    proxy_pass http://localhost:5601/;
+    proxy_redirect off;
+    auth_basic "Restricted";
+    auth_basic_user_file /etc/nginx/passwords;
+  }
+
+  }
+
+      server {
+      listen      {{nginx_ip}}:8082;
+      auth_basic           "RESTRICTED";
+      auth_basic_user_file /etc/nginx/passwords;
+      location / {
+          limit_except GET{
+                deny all; }
+          proxy_set_header    Host $http_host;
+          proxy_set_header    X-Real-IP   $remote_addr;
+          proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+
+          proxy_redirect off;
+          proxy_pass  http://localhost:9200;
+
+
+ }
+    }
+
+}

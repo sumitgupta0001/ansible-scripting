@@ -1,0 +1,14 @@
+---
+- name: Redis add PPA/repo
+  apt_repository: repo='ppa:rwky/redis'
+  sudo: yes
+
+- name: Install required system packages.
+  apt: pkg=redis-server state=installed update-cache=yes
+  sudo: yes
+
+- name: copy redis-conf file
+  template: src=redis.conf.j2 dest=/etc/redis/redis.conf
+  sudo : yes
+  notify: restart redis-server
+

@@ -1,0 +1,23 @@
+- name: Install Nginx
+  apt: pkg={{ item }} state=present 
+  with_items: 
+    - nginx
+    - python-passlib
+  sudo : yes
+  notify : remove default nignx conf
+
+- name : Create the user and password
+  htpasswd: path=/etc/nginx/passwords name=exampleuser password=12345 crypt_scheme=md5_crypt
+
+- name: copy nginx conf file 
+  template: src=nginx_config dest=/etc/nginx/sites-available/logkeep owner={{ansible_ssh_user}} mode=0600
+  sudo : yes
+- name: nginx stop
+  action: service name=nginx state=stopped
+  sudo : yes
+- name: run the logkeep
+  command:  nginx -p /nginx/ -c /etc/nginx/sites-available/logkeep
+  sudo : yes
+
+
+

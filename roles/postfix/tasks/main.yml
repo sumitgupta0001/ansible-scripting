@@ -1,0 +1,64 @@
+
+
+
+- name: Create pre-seed values for Postfix configuration
+  template: src=tmp-postfix_selections.j2 dest=/tmp/postfix_selections mode=0644 owner=root group=root
+  register: preseed_template
+  sudo: yes
+  tags:
+    - common
+    - postfix
+
+# - name: Pre-seed Postfix configuration
+#   command: >
+#     /usr/bin/debconf-set-selections /tmp/postfix_selections
+#     executable=/bin/bash
+#   when: preseed_template|changed
+#   tags:
+#     - common
+#     - postfix
+
+- name: Install packages for Debian derivatives
+  apt: >
+    pkg={{ item }}
+    update_cache=yes
+    state=latest
+  with_items: 
+    - mailutils
+    - postfix
+  sudo: yes
+  tags:
+    - common
+    - postfix
+
+- name: Write the password file
+  sudo: yes
+  template: >
+    src=pwd.j2
+    dest=/etc/postfix/sasl_passwd
+    mode=400 owner=root group=root
+
+- name: run postmap to configure postfix lookup tables
+  command: postmap /etc/postfix/sasl_passwd
+  sudo: yes
+  tags: postfix
+
+- name: install Mandrill (Thawte Premium Server) SSL certificates
+  sudo: yes
+  shell: creates=/etc/postfix/cacert.pem cat /etc/ssl/certs/Thawte_Premium_Server_CA.pem | tee /etc/postfix/cacert.pem
+  tags: postfix
+
+
+- name: Write Postfix configuration template
+  sudo: yes
+  template: >
+    src=main-cf.j2
+    dest=/etc/postfix/main.cf
+    mode=0644 owner=root group=root
+    backup=yes
+  notify:
+    - restart postfix
+  tags:
+    - common
+    - postfix
+

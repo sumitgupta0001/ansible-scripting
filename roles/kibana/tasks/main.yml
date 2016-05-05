@@ -1,0 +1,46 @@
+---
+- name: Create service account for Kibana
+  sudo: yes
+  user: name=kibana
+        system=yes
+        home=/var/lib/kibana
+        shell=/bin/false
+        state=present
+
+- name: Download Kibana
+  sudo: yes
+  get_url: url=https://download.elasticsearch.org/kibana/kibana/kibana-{{ kibana_version }}-{{ kibana_os }}-{{ kibana_arch }}.zip
+           dest=/usr/local/src/kibana-{{ kibana_version }}-{{ kibana_os }}-{{ kibana_arch }}.zip
+
+- name: Extract and install Kibana
+  sudo: yes
+  unarchive: src=/usr/local/src/kibana-{{ kibana_version }}-{{ kibana_os }}-{{ kibana_arch }}.zip
+             dest={{ kibana_dir }}
+             copy=no
+             creates={{ kibana_dir }}/kibana-{{ kibana_version }}-{{ kibana_os }}-{{ kibana_arch }}
+
+- name: Configure Kibana
+  sudo: yes
+  template: src=kibana.yml.j2
+            dest={{ kibana_dir }}/kibana-{{ kibana_version }}-{{ kibana_os }}-{{ kibana_arch }}/config/kibana.yml
+  notify:
+    - Restart Kibana
+
+- name: Configure Kibana service definition
+  sudo: yes
+  template: src=kibana.conf.j2 dest=/etc/init/kibana.conf
+  notify:
+    - Restart Kibana
+
+- name: Touch log file if it does not exist
+  sudo: yes
+  command: touch {{ kibana_log }}
+           creates={{ kibana_log }}
+
+- name: Set log file permissions
+  sudo: yes
+  file: path={{ kibana_log }} owner=kibana group=kibana mode=0644
+
+- name: Configure Kibana log rotation
+  sudo: yes
+  template: src=logrotate_kibana.j2 dest=/etc/logrotate.d/kibana

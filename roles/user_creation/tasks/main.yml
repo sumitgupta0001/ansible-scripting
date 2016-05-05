@@ -1,0 +1,39 @@
+- name: check apt last update
+  stat: path=/var/cache/apt
+  sudo: yes
+  register: apt_cache_stat
+
+- name: update apt if needed
+  apt: update_cache=yes
+  sudo: yes
+  when: ansible_date_time.epoch|float - apt_cache_stat.stat.mtime > 60*60*12
+ 
+- name: Add debian user
+  action: user name="" password=''
+  sudo: yes
+
+- name: Add authorized debian key 
+  action: authorized_key user=debian key='{{ lookup('file', '/home/sumit/ansible_test/auth.pub') }}'
+  sudo: yes
+
+- name: Remove sudo group rights
+  action: lineinfile dest=/etc/sudoers regexp="^%sudo" state=absent
+  sudo: yes
+
+- name: Add debian user to sudoers
+  action: lineinfile dest=/etc/sudoers regexp="debian ALL" line="debian ALL=(ALL:ALL) ALL" state=present
+  sudo: yes
+
+- name: Change the by default shell of a user
+  command: chsh -s /bin/bash debian
+  sudo: yes
+
+- name: Disallow root SSH access
+  action: lineinfile dest=/etc/ssh/sshd_config regexp="^PermitRootLogin" line="PermitRootLogin no" state=present
+  notify: Restart ssh
+  sudo: yes 
+
+- name: Disallow password authentication
+  action: lineinfile dest=/etc/ssh/sshd_config regexp="^PasswordAuthentication" line="PasswordAuthentication no" state=present
+  notify: Restart ssh
+  sudo: yes

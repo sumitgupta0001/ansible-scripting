@@ -1,0 +1,14 @@
+- name: Install fail2ban
+  action: apt pkg=fail2ban state=installed 
+  sudo: yes
+
+- name: copy ufw-ssh file 
+  template: src=ufw-ssh dest=/etc/fail2ban/action.d/ufw-ssh.conf owner={{ansible_ssh_user}} mode=0600
+  sudo : yes 
+
+- name: copy jail-local file 
+  template: src=jail-local dest=/etc/fail2ban/jail.local owner={{ansible_ssh_user}} mode=0600
+  sudo : yes
+  notify: restart fail2ban
+
+

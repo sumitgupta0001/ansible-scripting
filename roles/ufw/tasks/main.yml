@@ -1,0 +1,42 @@
+- name: install UFW - Uncomplicated Firewall
+  apt: name=ufw state=latest
+  sudo: yes 
+
+- name: Configure ufw defaults
+  ufw: direction={{ item.direction }} policy={{ item.policy }}
+  with_items:
+    - { direction: 'incoming', policy: 'deny' }
+    - { direction: 'outgoing', policy: 'allow' }
+  sudo: yes
+- name: set logging
+  ufw: logging=on
+  sudo: yes
+
+- name: Allow Openssh
+  ufw: rule=allow name=OpenSSH
+  sudo: yes
+- name: allow port 22
+  ufw: rule=allow port=22
+  sudo: yes
+- name: allow port 80
+  ufw: rule=allow port=80
+  sudo: yes
+- name: allow port 1432
+#new ssh port
+  ufw: rule=allow port=1432
+  sudo: yes
+- name: allow port 6379
+# for redis
+  ufw: rule=allow port=6379
+  sudo: yes
+- name: enable ufw
+  ufw: state=enabled policy=allow
+  sudo: yes
+
+# - name: allow port 8000
+# # for kibana through nginx
+#   ufw: rule=allow port=8000
+
+# - name: allow port 8082 
+# # for head_plugin through nginx
+#   ufw: rule=allow port=8082
